@@ -604,135 +604,6 @@ END
 
 
 
-
-
-/*======================================== Báo Cáo ===================================*/
-
-
-
-
-/*--- Lấy báo cáo tất cả hàng hóa theo thời gian ---*/
-Use QuanLyBanPhuKienMayTinh
-Go
-create procedure spGetReportAllHangHoatheoThoiGian
-(
-	@DateTimeBegin  datetime,
-	@DateTimeEnd	datetime
-)
-as
-begin
-	select HH.TenHH, HH.GiaBan, Sum(CTHD.SoLuong) as 'So Luong', (HH.GiaBan * Sum(CTHD.SoLuong)) as 'Thanh Tien'
-from HangHoa  HH , CTHD, HoaDonBan HDB
-where HH.TenHH = CTHD.TenHH
-	and  HDB.NgayLapHoaDon BETWEEN @DateTimeBegin and @DateTimeEnd
-group by HH.TenHH, HH.GiaBan
-End
-
-
-
-/*--- Lưu báo cáo tất cả hàng hóa theo thời gian ---*/
-Go
-create procedure spInsertReportAllHangHoatheoThoiGian
-(
-	@MaBaoCao		nvarchar(15),
-	@DateTimeBegin	datetime,
-	@DateTimeEnd 	datetime,
-	@MaNhomLoai 	nvarchar(15),
-	@TenHH 			nvarchar(50),
-	@SoLuong 		int,
-	@ThanhTien 		money
-)
-as
-begin
-	insert into BaoCaoThongKeHangHoa (MaBaoCao, NgayBatDau, NgayKetThuc, MaNhomLoai, TenHH, SoLuong, ThanhTien)
-	values (@MaBaoCao, @DateTimeBegin, @DateTimeEnd, @MaNhomLoai, @TenHH, @SoLuong, @ThanhTien)
-End
-
-
-/*--- Xóa báo cáo ---*/
-Use QuanLyBanPhuKienMayTinh
-Go
-create procedure spDeleteReport
-(
-	@MaBaoCao		nvarchar(15)
-)
-as
-begin	
-	delete from BaoCaoDoanhThu where MaBaoCao = @MaBaoCao
-End
-
-
-
-/*--- Lấy báo cáo 1 loại hàng hóa theo thời gian ---*/
-Go
-create procedure spGetReport1HangHoatheoThoiGian
-(
-	@DateTimeBegin	datetime,
-	@DateTimeEnd	datetime,
-	@MaHH 			nvarchar(50)
-)
-as
-begin
-	select HH.GiaBan, Sum(CTHD.SoLuong) as 'So Luong', (HH.GiaBan * Sum(CTHD.SoLuong)) as 'Thanh Tien'
-from HangHoa  HH , CTHD, HoaDonBan HDB
-where HH.MaHH = @MaHH
-	and  HDB.NgayLapHoaDon BETWEEN @DateTimeBegin and @DateTimeEnd
-group by HH.GiaBan
-End
-
-
-/*--- Lấy báo cáo theo nhân viên ---*/
-Go
-create procedure spGetReportHangHoatheoNhanVien
-(
-	@DateTimeBegin	datetime,
-	@DateTimeEnd	datetime,
-	@MaNhanVien 	nvarchar(50)
-)
-as
-begin
-	select Distinct HH.TenHH, Sum(CTHD.SoLuong) as 'So Luong', (HH.GiaBan * Sum(CTHD.SoLuong)) as 'Thanh Tien'
-from HangHoa  HH,  CTHD, Nhanvien NV, HoaDonBan HDB
-where HH.TenHH = CTHD.TenHH
-	and HDB.NgayLapHoaDon BETWEEN @DateTimeBegin and @DateTimeEnd
-	and NV.MaNhanVien = @MaNhanVien
-group by HH.TenHH
-End
-
-
-/*--- Lấy báo cáo theo Số lượng bán ---*/
-Use QuanLyBanPhuKienMayTinh
-Go
-create procedure spGetReportHangHoatheoSoLuongBan
-(
-	@DateTimeBegin	datetime,
-	@DateTimeEnd	datetime
-)
-as
-begin
-	select Distinct HH.TenHH, Sum(CTHD.SoLuong) as 'SoLuong', MAX(Sum(CTHD.SoLuong)) as 'SoLuongNhieuNhat'
-from HangHoa  HH,  CTHD, HoaDonBan HDB
-where HH.TenHH = CTHD.TenHH
-	and HDB.NgayLapHoaDon BETWEEN @DateTimeBegin and @DateTimeEnd
-group by HH.TenHH
-End
-
-
-
-/*---Tim Kiem BaoCao Theo MaBaoCao ---*/
-Go
-create procedure spSearchBaoCaoTheoMa
-(
-	@MaBaoCao nvarchar(10)
-)
-as
-Begin
-	select * from BaoCaoThongKeHangHoa where MaBaoCao like N'%'+@MaBaoCao+'%'
-End
-
-
-
-
 /*----------------------------------------------- Tài Khoản -------------------------------*/
 
 
@@ -857,7 +728,7 @@ End
 
 
 
-/*==============================================  Bảo Hành và Khuyến Mại ================================*/
+/*==============================================  Bảo Hành =============================================*/
 
 
 /*--- Thêm Bảo Hành ---*/
@@ -871,24 +742,6 @@ as
 begin
 	insert into BaoHanh(MaNhomLoai, ThoiGianBaoHanh)
 	values(@MaNhomLoai, @ThoiGianBaoHanh)
-End
-
-
-
-/*--- Thêm Khuyến Mại ---*/
-Go
-create procedure spInsertKhuyenMai
-(
-	@IDKhuyenMai 		nvarchar(15),
-	@TenHH 			 	nvarchar(50),
-	@DieuKien			int,
-	@ChiTiet			nvarchar(50),
-	@ThoiGianApDung		nvarchar(15)
-)
-as
-begin
-	insert into KhuyenMai(IDKhuyenMai, MaNhomLoai, DieuKien, ChiTiet, ThoiGianApDung)
-	values(@IDKhuyenMai, @MaNhomLoai, @DieuKien, @ChiTiet, @ThoiGianApDung)
 End
 
 
@@ -909,28 +762,6 @@ End
 
 
 
-/*--- Sửa Khuyến Mại ---*/
-Go
-create procedure spUpdateKhuyenMai
-(
-	@IDKhuyenMai 		nvarchar(15),
-	@TenHH 			 	nvarchar(50),
-	@DieuKien			int,
-	@ChiTiet			nvarchar(50),
-	@ThoiGianApDung		nvarchar(15)
-)
-as
-begin
-	update KhuyenMai set
-						TenHH = @TenHH,
-						DieuKien = @DieuKien,
-						ChiTiet = @ChiTiet,
-						ThoiGianApDung = @ThoiGianApDung
-		where IDKhuyenMai = @IDKhuyenMai
-End
-
-
-
 /*--- Xóa Bảo Hành ---*/
 Go
 create procedure spDeleteBaoHanh
@@ -944,19 +775,6 @@ End
 
 
 
-/*--- Xóa Khuyến Mại ---*/
-Go
-create procedure spDeleteKhuyenMai
-(
-	@IDKhuyenMai		nvarchar(15)
-)
-as
-begin
-	Delete from KhuyenMai where IDKhuyenMai = @IDKhuyenMai
-End
-
-
-
 /*---Tim Kiem Bảo Hành Theo Mã Nhóm Loại ---*/
 Go
 create procedure spSearchBaoHanh
@@ -966,19 +784,6 @@ create procedure spSearchBaoHanh
 as
 Begin
 	select * from BaoHanh where MaNhomLoai like N'%'+@MaNhomLoai+'%'
-End
-
-
-
-/*---Tim Kiem Khuyến Mại Theo ID Khuyến Mại ---*/
-Go
-create procedure spSearchKhuyenMai
-(
-	@IDKhuyenMai nvarchar(10)
-)
-as
-Begin
-	select * from KhuyenMai where IDKhuyenMai like N'%'+@IDKhuyenMai+'%'
 End
 
 
